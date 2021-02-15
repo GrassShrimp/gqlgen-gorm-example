@@ -1,0 +1,138 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar Time
+
+scalar Email
+
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+    ADMIN
+    USER
+}
+
+type Customer {
+  customerNumber: Int!
+  customerName: String!
+  contactLastName: String!
+  contactFirstName: String!
+  phone: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String
+  postalCode: String
+  country: String!
+  employee: Employee
+  creditLimit: Float
+}
+
+type Employee {
+  employeeNumber: Int!
+  lastName: String!
+  firstName: String!
+  extension: String!
+  email: Email!
+  office: Office!
+  employee: Employee
+  jobTitle: String!
+}
+
+type Office {
+  officeCode: String!
+  city: String!
+  phone: String!
+  addressLine1: String!
+  addressLine2: String
+  state: String
+  country: String!
+  postalCode: String!
+  territory: String!
+}
+
+type Orderdetail {
+  order: Order!
+  product: Product!
+  quantityOrdered: Int!
+  priceEach: Float!
+  orderLineNumber: Int!
+}
+
+type Order {
+  orderNumber: Int!
+  orderDate: Time!
+  requiredDate: Time!
+  shippedDate: Time
+  status: String!
+  comments: String
+  customer: Customer!
+}
+
+type Payment {
+  customer: Customer!
+  checkNumber: String!
+  paymentDate: Time!
+  amount: Float!
+}
+
+type Productline {
+  productLine: String!
+  textDescription: String!
+  htmlDescription: String
+  image: String
+}
+
+type Product {
+  productCode: String!
+  productName: String!
+  productLine: Productline!
+  productScale: String!
+  productVendor: String!
+  productDescription: String!
+  quantityInStock: Int!
+  buyPrice: Float!
+  MSRP: Float!
+}
+
+type Query {
+  product(productCode: String): Product!
+  products: [Product!]!
+  offices: [Office!]!
+  customers: [Customer!]!
+  employees: [Employee!]!
+  orderdetails: [Orderdetail!]!
+  orders: [Order!]!
+  payments: [Payment!]!
+}
+
+input OfficeCreate {
+  officeCode: String!
+  city: String!
+  phone: String!
+  addressLine1: String!
+  addressLine2: String
+  state: String
+  country: String!
+  postalCode: String!
+  territory: String!
+}
+
+input OfficeUpdate {
+  officeCode: String
+  city: String
+  phone: String
+  addressLine1: String
+  addressLine2: String
+  state: String
+  country: String
+  postalCode: String
+  territory: String
+}
+
+type Mutation {
+  createOffice(input: OfficeCreate!): Office!
+  updateOffice(id: String!,input: OfficeUpdate!): Office!
+  deleteOffice(id: String!): Boolean! @hasRole(role: ADMIN)
+}
