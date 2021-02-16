@@ -3,13 +3,17 @@ services:
   app:
     build:
       context: ./
+    command: -config /app/config.yaml
     networks:
     - gqlgen-gorm-example
     ports:
     - 8080:8080
+    volumes:
+    - ./config.yaml:/app/config.yaml
     depends_on:
     - redis
     - mysql
+    restart: on-failure
     container_name: app
   redis:
     image: redis:6-alpine

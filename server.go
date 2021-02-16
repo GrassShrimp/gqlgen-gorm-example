@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
+	"strconv"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -25,10 +25,24 @@ import (
 const defaultPort = "8080"
 
 var db *gorm.DB
+var cfg *Config
 
 func init() {
-	var err error
-	dsn := "root:root@tcp(mysql:3306)/classicmodels?parseTime=True"
+	configfile, err := ParseFlags()
+
+	if err != nil {
+		fmt.Println(err)
+		panic("failed to parse configfile")
+	}
+
+	cfg, err = NewConfig(configfile)
+
+	if err != nil {
+		fmt.Println(err)
+		panic("failed to parse configfile")
+	}
+
+	dsn := cfg.MysqlDsn
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -38,25 +52,20 @@ func init() {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
 	// Setting up Gin
 	r := gin.Default()
 	// r.Use(dataloader.CustomerLoaderMiddleware(db))
 	r.Use(auth.AuthMiddleware())
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
-	r.Run(":" + port)
+	r.Run(":" + cfg.Port)
 }
 
 // Defining the Graphql handler
 func graphqlHandler() gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in the resolver.go file
-	cache, err := NewCache("redis:6379", "", 0, 24*time.Hour)
+	cache, err := NewCache(cfg.Redis.Host+":"+strconv.Itoa(cfg.Redis.Port), cfg.Redis.Password, cfg.Redis.Index, 24*time.Hour)
 
 	if err != nil {
 		log.Fatalf("cannot create APQ redis cache: %v", err)
